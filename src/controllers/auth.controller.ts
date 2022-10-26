@@ -44,7 +44,7 @@ export const auth = {
         }
       );
 
-      res.cookie("token", token, {
+      res.cookie("token", `Bearer ${token}`, {
         httpOnly: true,
         sameSite: "none",
         secure: true,
@@ -132,7 +132,7 @@ export const auth = {
         }
       );
 
-      res.cookie("token", token, {
+      res.cookie("token", `Bearer ${token}`, {
         httpOnly: true,
         sameSite: "none",
         secure: true,
