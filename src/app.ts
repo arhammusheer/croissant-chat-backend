@@ -6,6 +6,7 @@ import compression from "compression";
 import { NODE_ENV, PORT } from "./config";
 import cors from "cors";
 import { router } from "./routes";
+import cookieParser from "cookie-parser";
 
 export const prisma = new PrismaClient();
 
@@ -16,6 +17,8 @@ async function main() {
   app.use(morgan("dev"));
   app.use(compression());
   app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  app.use(cookieParser());
   app.use(
     cors({
       origin: [

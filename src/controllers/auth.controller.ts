@@ -3,6 +3,8 @@ import { NextFunction, Request, Response } from "express";
 import { prisma } from "../app";
 import { getRandomColor, getRandomEmoji } from "../utils/avatar";
 import { validateEmail, validatePassword } from "../utils/validation";
+import jwt from "jsonwebtoken";
+import { NODE_ENV } from "../config";
 
 export const auth = {
   login: async (req: Request, res: Response, next: NextFunction) => {
@@ -29,6 +31,26 @@ export const auth = {
         throw new Error("401: Invalid credentials");
       }
 
+      const token = jwt.sign(
+        {
+          id: user.id,
+          email: user.email,
+          emoji: user.emoji,
+          background: user.backgroundColor,
+        },
+        process.env.JWT_SECRET as string,
+        {
+          expiresIn: "1d",
+        }
+      );
+
+      res.cookie("token", token, {
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 24,
+        sameSite: "strict",
+        secure: NODE_ENV === "production",
+      });
+
       return res.json({
         status: "success",
         data: {
@@ -40,6 +62,7 @@ export const auth = {
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
           },
+          token,
         },
       });
     } catch (err) {
@@ -97,6 +120,25 @@ export const auth = {
         },
       });
 
+      const token = jwt.sign(
+        {
+          id: user.id,
+          email: user.email,
+          emoji: user.emoji,
+          background: user.backgroundColor,
+        },
+        process.env.JWT_SECRET as string,
+        {
+          expiresIn: "1d",
+        }
+      );
+
+      res.cookie("token", token, {
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 24,
+        secure: NODE_ENV === "production",
+      });
+
       return res.json({
         status: "success",
         data: {
@@ -108,6 +150,7 @@ export const auth = {
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
           },
+          token,
         },
       });
     } catch (err) {
