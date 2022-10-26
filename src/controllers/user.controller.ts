@@ -74,6 +74,22 @@ export const user = {
         id: req.user.id,
       });
 
+      if (!latitude || !longitude) {
+        throw new Error("400:Latitude and longitude are required");
+      }
+
+      if (typeof latitude !== "number" || typeof longitude !== "number") {
+        throw new Error("400:Latitude and longitude must be numbers");
+      }
+
+      if (latitude < -90 || latitude > 90) {
+        throw new Error("400:Latitude must be between -90 and 90");
+      }
+
+      if (longitude < -180 || longitude > 180) {
+        throw new Error("400:Longitude must be between -180 and 180");
+      }
+
       const locationLog = await prisma.locationLog.create({
         data: {
           latitude,
