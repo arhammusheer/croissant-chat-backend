@@ -46,9 +46,8 @@ export const auth = {
 
       res.cookie("token", token, {
         httpOnly: true,
-        maxAge: 1000 * 60 * 60 * 24,
-        sameSite: "strict",
-        secure: NODE_ENV === "production",
+        sameSite: "none",
+        secure: true,
       });
 
       return res.json({
@@ -135,8 +134,8 @@ export const auth = {
 
       res.cookie("token", token, {
         httpOnly: true,
-        maxAge: 1000 * 60 * 60 * 24,
-        secure: NODE_ENV === "production",
+        sameSite: "none",
+        secure: true,
       });
 
       return res.json({
