@@ -23,6 +23,7 @@ async function main() {
     cors({
       origin: [
         `http://localhost:${PORT}`,
+        `http://localhost:3000`,
         "https://chat.croissant.one",
         /croissant\.one$/, // Allow subdomains from croissant.one (e.g. chat.croissant.one)
       ],
