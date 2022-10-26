@@ -1,4 +1,4 @@
-import { Prisma, User } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 import { prisma } from "../app";
 import { getRandomColor, getRandomEmoji } from "../utils/avatar";
@@ -74,7 +74,7 @@ export const user = {
         id: req.user.id,
       });
 
-      if (!latitude || !longitude) {
+      if (latitude === undefined || longitude === undefined) {
         throw new Error("400:Latitude and longitude are required");
       }
 
