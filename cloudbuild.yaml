@@ -1,0 +1,28 @@
+steps:
+  # Build the container image
+  - name: "gcr.io/kaniko-project/executor:latest"
+    id: "kaniko-build"
+    args:
+      - "--dockerfile=./Dockerfile"
+      - "--destination=gcr.io/$PROJECT_ID/croissant-chat-api"
+      - "--cache=true"
+
+    # [START cloudbuild_quickstart_deploy]
+  - name: "gcr.io/cloud-builders/gcloud"
+    entrypoint: gcloud
+    id: "prod-cloud-run-deploy"
+    args:
+      - "run"
+      - "deploy"
+      - "croissant-chat-api"
+      - "--image"
+      - "gcr.io/$PROJECT_ID/croissant-chat-api:latest"
+      - "--region"
+      - "us-east1"
+      - "--platform"
+      - "managed"
+      - "--allow-unauthenticated"
+      - "--set-env-vars=NODE_ENV=production"
+      - "--set-secrets=DATABASE_URL=planetscale-db-uri:latest,JWT_SECRET=jwt-secret:latest"
+    waitFor: ["kaniko-build"]
+# [END cloudbuild_quickstart_deploy]
