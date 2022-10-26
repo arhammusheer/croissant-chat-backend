@@ -10,7 +10,7 @@ declare module "express-serve-static-core" {
 
 export default (req: Request, res: Response, next: NextFunction) => {
   // Get Auth Token
-  const bearer = req.headers["authorization"] || req.cookies["token"];
+  const bearer = req.cookies["token"] || req.headers["authorization"];
   if (!bearer) {
     throw new Error("401: Unauthorized. No token provided.");
   }
