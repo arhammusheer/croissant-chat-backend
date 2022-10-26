@@ -27,6 +27,7 @@ async function main() {
         "https://chat.croissant.one",
         /croissant\.one$/, // Allow subdomains from croissant.one (e.g. chat.croissant.one)
       ],
+      credentials: true,
     })
   );
 
