@@ -12,7 +12,6 @@ export default (req: Request, res: Response, next: NextFunction) => {
   // Get Auth Token
   const bearer = req.cookies["token"] || req.headers["authorization"];
 
-  console.log("Bearer:", bearer);
   if (!bearer) {
     throw new Error("401: Unauthorized. No token provided.");
   }
