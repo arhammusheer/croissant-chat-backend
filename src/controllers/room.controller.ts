@@ -1,6 +1,6 @@
-import { Prisma } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 import { prisma } from "../app";
+import { error, sendHttpError } from "../common/error.message";
 
 export const room = {
   create: async (req: Request, res: Response, next: NextFunction) => {
@@ -8,11 +8,11 @@ export const room = {
       const { name, latitude, longitude } = req.body;
 
       if (!name) {
-        throw new Error("400:Room name is required");
+        return sendHttpError(res, error.ROOM_NAME_REQUIRED)
       }
 
       if (latitude === undefined || longitude === undefined) {
-        throw new Error("400:Latitude and longitude are required");
+        return sendHttpError(res, error.LAT_LONG_REQUIRED)
       }
 
       const room = await prisma.room.create({
@@ -49,7 +49,7 @@ export const room = {
       const { latitude, longitude, radius = "5" } = req.query;
 
       if (latitude === undefined || longitude === undefined) {
-        throw new Error("400:Latitude and longitude are required");
+        return sendHttpError(res, error.LAT_LONG_REQUIRED)
       }
       // Find room IDs that are within the radius
       // latitude and longitude are in degrees

@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 import { prisma } from "../app";
+import { error, sendHttpError } from "../common/error.message";
 import { getRandomColor, getRandomEmoji } from "../utils/avatar";
 
 export const user = {
@@ -13,9 +14,7 @@ export const user = {
       });
 
       if (!profile) {
-        return res.status(404).json({
-          message: "User not found",
-        });
+        return sendHttpError(res, error.USER_NOT_FOUND)
       }
 
       return res.json({
@@ -75,19 +74,19 @@ export const user = {
       });
 
       if (latitude === undefined || longitude === undefined) {
-        throw new Error("400:Latitude and longitude are required");
+        return sendHttpError(res, error.LAT_LONG_REQUIRED)
       }
 
       if (typeof latitude !== "number" || typeof longitude !== "number") {
-        throw new Error("400:Latitude and longitude must be numbers");
+        return sendHttpError(res, error.LAT_LONG_MUST_BE_NUMBERS)
       }
 
       if (latitude < -90 || latitude > 90) {
-        throw new Error("400:Latitude must be between -90 and 90");
+        return sendHttpError(res, error.LAT_LONG_MUST_BE_BETWEEN_MINUS_90_AND_90)
       }
 
       if (longitude < -180 || longitude > 180) {
-        throw new Error("400:Longitude must be between -180 and 180");
+        return sendHttpError(res, error.LAT_LONG_MUST_BE_BETWEEN_MINUS_180_AND_180)
       }
 
       const locationLog = await prisma.locationLog.create({
