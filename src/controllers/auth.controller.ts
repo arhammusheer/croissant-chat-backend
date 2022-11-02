@@ -4,7 +4,7 @@ import { prisma } from "../app";
 import { getRandomColor, getRandomEmoji } from "../utils/avatar";
 import { validateEmail, validatePassword } from "../utils/validation";
 import jwt from "jsonwebtoken";
-import { NODE_ENV } from "../config";
+import { error, sendHttpError } from "../common/error.message";
 
 export const auth = {
   login: async (req: Request, res: Response, next: NextFunction) => {
@@ -12,7 +12,7 @@ export const auth = {
       const { email, password } = req.body;
 
       if (!email || !password) {
-        throw new Error("400: Email and password are required");
+        return sendHttpError(res, error.EMAIL_AND_PASSOWORD_REQUIRED)
       }
 
       const user = await prisma.user.findUnique({
@@ -22,13 +22,13 @@ export const auth = {
       });
 
       if (!user) {
-        throw new Error("401: User not found");
+        return sendHttpError(res, error.USER_NOT_FOUND)
       }
 
       const isPasswordCorrect = await compare(password, user.password);
 
       if (!isPasswordCorrect) {
-        throw new Error("401: Invalid credentials");
+        return sendHttpError(res, error.INVALID_CREDENTIALS)
       }
 
       const token = jwt.sign(
@@ -77,24 +77,25 @@ export const auth = {
       };
 
       if (!email || !password) {
-        throw new Error("400: Email and password are required");
+        return sendHttpError(res, error.EMAIL_AND_PASSOWORD_REQUIRED)
       }
 
       // Email validation
       const isEmailValid = validateEmail(email);
 
       if (!isEmailValid) {
-        throw new Error("400: Invalid email");
+        return sendHttpError(res, error.INVALID_EMAIL)
       }
 
       // Password validation
       const isPasswordValid = validatePassword(password);
 
       if (!isPasswordValid) {
-        throw new Error("400: Invalid password");
+        return sendHttpError(res, error.INVALID_PASSWORD)
       }
 
       // Check if user already exists
+      //TODO remove this verification and make use of Prisma's conflict exceptions
       const exists = await prisma.user.count({
         where: {
           email,
@@ -102,7 +103,7 @@ export const auth = {
       });
 
       if (exists > 0) {
-        throw new Error("400: User already exists");
+        return sendHttpError(res, error.USER_ALREADY_EXISTS)
       }
 
       const saltedPassword = await hash(password, 10);
