@@ -21,9 +21,9 @@ model Room {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   messages  Message[]
-  
-  Owner      User?     @relation(fields: [ownerId], references: [id])
-  ownerId    String?
+
+  Owner   User?   @relation(fields: [ownerId], references: [id])
+  ownerId String?
 }
 
 model Message {
@@ -51,9 +51,12 @@ model User {
   messages Message[]
   rooms    Room[]
 
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  lastSeenAt DateTime?
+
   LocationLog LocationLog[]
+  OneTimeCode OneTimeCode[]
 }
 
 model LocationLog {
@@ -66,4 +69,18 @@ model LocationLog {
 
   User   User   @relation(fields: [userId], references: [id])
   userId String
+}
+
+model OneTimeCode {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  expiresAt DateTime
+
+  used   Boolean   @default(false)
+  usedAt DateTime?
+
+  User   User?   @relation(fields: [userId], references: [id])
+  userId String?
 }
