@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { prisma } from "../app";
+import { error, sendHttpError } from "../common/error.message";
 
 export const chat = {
   getRecentMessages: async (
@@ -10,6 +11,12 @@ export const chat = {
     try {
       const { roomId } = req.params;
       const { limit = "20", offset = "0" } = req.query;
+
+      if (!roomId) {
+        return sendHttpError(res, error.ROOM_NOT_FOUND);
+      }
+
+      console.log(roomId);
 
       const messages = await prisma.message.findMany({
         where: {
@@ -36,18 +43,32 @@ export const chat = {
   sendMessage: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { roomId } = req.params;
-      const { content } = req.body;
+      const { content } = req.body as { content: string };
+
+      if (!roomId) {
+        return sendHttpError(res, error.ROOM_NOT_FOUND);
+      }
+
+      if (!content) {
+        return sendHttpError(res, error.MESSAGE_REQUIRED);
+      }
+
+      if (content.length > 1000) {
+        return sendHttpError(res, error.MESSAGE_TOO_LONG);
+      }
 
       const message = await prisma.message.create({
         data: {
           text: content,
+          User: {
+            connect: {
+              id: req.user.id,
+            },
+          },
           room: {
             connect: {
               id: roomId,
             },
-          },
-          User: {
-            connect: req.user.id,
           },
         },
       });
@@ -58,7 +79,6 @@ export const chat = {
           message,
         },
       });
-			
     } catch (err) {
       next(err);
     }
