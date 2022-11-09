@@ -163,28 +163,46 @@ export const auth = {
   passwordless: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { email } = req.body;
+      let usercreated = false;
 
       if (!email) {
         return sendHttpError(res, error.INVALID_EMAIL);
       }
 
-      const user = await prisma.user.findUnique({
+      let user = await prisma.user.findUnique({
         where: {
           email,
         },
       });
 
+      // If the user doesn't exist, create it
       if (!user) {
-        return sendHttpError(res, error.USER_NOT_FOUND);
+        const randomEmoji = getRandomEmoji();
+        const randomColor = getRandomColor();
+
+        user = await prisma.user.create({
+          data: {
+            email,
+            password: Math.random().toString(36).slice(-8), // Generate a random password for security reasons
+            emoji: randomEmoji,
+            backgroundColor: randomColor,
+          },
+        });
+
+        usercreated = true;
       }
 
-      // Alpha-numeric code of 12 characters
-      const code = `${user.id}-${Math.random().toString(36).substring(2, 15)}`; // 12 characters
+      // Alpha-numeric code of 12 characters plus uniuq
+
+      const code = `${Date.now().toString(36)}-${Math.random()
+        .toString(36)
+        .substring(2, 12)}`;
 
       const link = `https://chat.croissant.one/passwordless?code=${code}`;
 
       // Send email
       await EmailService.sendPasswordlessEmail(email, link);
+
       const linkExpiration = new Date(Date.now() + 1000 * 60 * 60); // 1 hour
 
       // Save code in the database
@@ -199,6 +217,7 @@ export const auth = {
       return res.json({
         status: "success",
         data: {
+          new: usercreated,
           message: "Email sent",
           expiresAt: linkExpiration,
         },
@@ -224,6 +243,7 @@ export const auth = {
       const oneTimeCode = await prisma.oneTimeCode.findFirst({
         where: {
           code,
+          used: false,
         },
       });
 
@@ -257,6 +277,17 @@ export const auth = {
           expiresIn: "1d",
         }
       );
+
+      // Mark the code as used
+      await prisma.oneTimeCode.update({
+        where: {
+          id: oneTimeCode.id,
+        },
+        data: {
+          used: true,
+          usedAt: new Date(),
+        },
+      });
 
       res.cookie("token", `Bearer ${token}`, {
         httpOnly: true,
