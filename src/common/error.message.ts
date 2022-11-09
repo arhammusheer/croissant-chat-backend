@@ -109,6 +109,28 @@ export const error = {
     "validation_error",
     "Latitude and longitude must be between -180 and 180"
   ),
+
+  // Message errors
+  MESSAGE_REQUIRED: new HttpError(
+    HttpStatusCode.BAD_REQUEST,
+    "validation_error",
+    "Message is required"
+  ),
+  MESSAGE_TOO_LONG: new HttpError(
+    HttpStatusCode.BAD_REQUEST,
+    "validation_error",
+    "Message is too long"
+  ),
+  ROOM_NOT_FOUND: new HttpError(
+    HttpStatusCode.NOT_FOUND,
+    "not_found",
+    "Room not found"
+  ),
+  USER_NOT_IN_ROOM: new HttpError(
+    HttpStatusCode.UNAUTHORIZED,
+    "access_denied",
+    "User not in room"
+  ),
 };
 
 export const sendHttpError = (res: Response, error: HttpError) => {
