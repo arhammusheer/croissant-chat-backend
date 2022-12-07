@@ -76,7 +76,21 @@ export class ChatRoomManager {
     }
   }
 
-  async sendMessage(roomId: string, userId: string, message: string) {
+  async sendMessage({
+    id,
+    roomId,
+    userId,
+    text,
+    createdAt,
+    updatedAt,
+  }: {
+    id: string;
+    roomId: string;
+    userId: string;
+    text: string;
+    createdAt: Date;
+    updatedAt: Date;
+  }) {
     const room = this.rooms.get(roomId);
 
     if (!room) {
@@ -84,9 +98,12 @@ export class ChatRoomManager {
     }
 
     const payload = {
+      id,
       roomId,
       userId,
-      message,
+      text,
+      createdAt,
+      updatedAt,
     };
 
     room.users.forEach((ws) => {

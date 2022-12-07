@@ -76,7 +76,14 @@ export const chat = {
         },
       });
 
-      rooms.sendMessage(roomId, req.user.id, content);
+      rooms.sendMessage({
+        id: message.id,
+        roomId,
+        userId: req.user.id,
+        text: message.text,
+        createdAt: message.createdAt,
+        updatedAt: message.updatedAt,
+      });
 
       return res.json({
         status: "success",
