@@ -19,32 +19,32 @@ export const wss = new WebSocketServer({
   server: server,
   path: "/ws",
   clientTracking: true,
-  verifyClient: (info, done) => {
-    const { authorization } = info.req.headers;
+  // verifyClient: (info, done) => {
+  //   const { authorization } = info.req.headers;
 
-    if (!authorization) {
-      return done(false, 401, "Unauthorized");
-    }
+  //   if (!authorization) {
+  //     return done(false, 401, "Unauthorized");
+  //   }
 
-    const [scheme, token] = authorization.split(" ");
+  //   const [scheme, token] = authorization.split(" ");
 
-    if (scheme !== "Bearer") {
-      return done(false, 401, "Unauthorized");
-    }
+  //   if (scheme !== "Bearer") {
+  //     return done(false, 401, "Unauthorized");
+  //   }
 
-    if (!token) {
-      return done(false, 401, "Unauthorized");
-    }
+  //   if (!token) {
+  //     return done(false, 401, "Unauthorized");
+  //   }
 
-    // Verify token
-    const decoded = verify(token, process.env.JWT_SECRET as string);
+  //   // Verify token
+  //   const decoded = verify(token, process.env.JWT_SECRET as string);
 
-    if (!decoded) {
-      return done(false, 401, "Unauthorized");
-    }
+  //   if (!decoded) {
+  //     return done(false, 401, "Unauthorized");
+  //   }
 
-    return done(true);
-  },
+  //   return done(true);
+  // },
 });
 
 async function main() {
