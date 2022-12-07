@@ -2,7 +2,7 @@ import { WebSocket } from "ws";
 
 interface ChatRoom {
   roomId: string;
-  users: Map<string, WebSocket>;
+  users: Map<string, WebSocket>; // userId, WebSocket
 }
 
 export class ChatRoomManager {

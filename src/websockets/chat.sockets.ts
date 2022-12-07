@@ -1,6 +1,4 @@
 import { WebSocketServer } from "ws";
-import { createClient } from "redis";
-import { prisma } from "../app";
 import { ChatRoomManager } from "../services/room.service";
 
 const rooms = new ChatRoomManager();
@@ -8,17 +6,17 @@ const rooms = new ChatRoomManager();
 interface WSMessage {
   type: "join" | "leave";
   roomId: string;
-  userId: string;
-  message?: string;
 }
 
 interface WSMessageLeaveAll {
   type: "leaveAll";
-  userId: string;
 }
 
 export const initializeWebSockets = (wss: WebSocketServer) => {
   wss.on("connection", (ws) => {
+    const ID =
+      Math.random().toString(36).substring(2, 15) +
+      Math.random().toString(36).substring(2, 15);
     ws.on("message", (data) => {
       const message: WSMessage | WSMessageLeaveAll = JSON.parse(
         data.toString()
@@ -27,14 +25,22 @@ export const initializeWebSockets = (wss: WebSocketServer) => {
       switch (message.type) {
         case "join":
           // Join room
-          rooms.joinRoom(message.roomId, message.userId, ws);
+          rooms.joinRoom(message.roomId, ID, ws);
 
           break;
         case "leave":
           // Leave room
-          rooms.leaveRoom(message.roomId, message.userId);
+          rooms.leaveRoom(message.roomId, ID);
+          break;
+        case "leaveAll":
+          // Leave all rooms
+          rooms.leaveAllRooms(ID);
           break;
       }
+    });
+
+    ws.on("close", () => {
+      rooms.leaveAllRooms(ID);
     });
   });
 };

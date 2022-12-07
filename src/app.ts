@@ -18,6 +18,7 @@ export const server = createServer(app);
 export const wss = new WebSocketServer({
   server: server,
   path: "/ws",
+  clientTracking: true,
   verifyClient: (info, done) => {
     const { authorization } = info.req.headers;
 
