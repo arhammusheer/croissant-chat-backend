@@ -1,6 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import { prisma } from "../app";
 import { error, sendHttpError } from "../common/error.message";
+import { ChatRoomManager } from "../services/room.service";
+
+const rooms = new ChatRoomManager();
 
 export const chat = {
   getRecentMessages: async (
@@ -72,6 +75,8 @@ export const chat = {
           },
         },
       });
+
+      rooms.sendMessage(roomId, req.user.id, content);
 
       return res.json({
         status: "success",

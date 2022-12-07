@@ -7,12 +7,46 @@ import { NODE_ENV, PORT } from "./config";
 import cors from "cors";
 import { router } from "./routes";
 import cookieParser from "cookie-parser";
+import { createServer } from "http";
+import { WebSocketServer } from "ws";
+import { initializeWebSockets } from "./websockets/chat.sockets";
+import { verify } from "jsonwebtoken";
 
 export const prisma = new PrismaClient();
+const app = express();
+export const server = createServer(app);
+export const wss = new WebSocketServer({
+  server: server,
+  path: "/ws",
+  verifyClient: (info, done) => {
+    const { authorization } = info.req.headers;
+
+    if (!authorization) {
+      return done(false, 401, "Unauthorized");
+    }
+
+    const [scheme, token] = authorization.split(" ");
+
+    if (scheme !== "Bearer") {
+      return done(false, 401, "Unauthorized");
+    }
+
+    if (!token) {
+      return done(false, 401, "Unauthorized");
+    }
+
+    // Verify token
+    const decoded = verify(token, process.env.JWT_SECRET as string);
+
+    if (!decoded) {
+      return done(false, 401, "Unauthorized");
+    }
+
+    return done(true);
+  },
+});
 
 async function main() {
-  const app = express();
-
   app.use(helmet());
   app.use(morgan("dev"));
   app.use(compression());
@@ -32,6 +66,7 @@ async function main() {
   );
 
   app.use("/", router);
+  initializeWebSockets(wss);
 
   const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
     const [status, message] = err.message.includes(":")
@@ -55,7 +90,7 @@ async function main() {
   app.use(errorHandler);
   app.use(_404);
 
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
 }
