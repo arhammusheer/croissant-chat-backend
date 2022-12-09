@@ -22,7 +22,7 @@ steps:
       - "--platform"
       - "managed"
       - "--allow-unauthenticated"
-      - "--set-env-vars=NODE_ENV=production"
-      - "--set-secrets=DATABASE_URL=planetscale-db-uri:latest,JWT_SECRET=jwt-secret:latest"
+      - "--set-env-vars=NODE_ENV=production,SG_DOMAIN=croissant.one"
+      - "--set-secrets=DATABASE_URL=planetscale-db-uri:latest,JWT_SECRET=jwt-secret:latest,SG_MAIL=sendgrid-api-key:latest"
     waitFor: ["kaniko-build"]
 # [END cloudbuild_quickstart_deploy]
