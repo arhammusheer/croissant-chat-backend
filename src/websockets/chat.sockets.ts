@@ -51,7 +51,5 @@ export const redisSubscriptionInit = async (redis: redisType) => {
     const message = JSON.parse(data);
 
     await rooms.sendMessage(message);
-
-    console.log("Message received from Redis", message);
   });
 };

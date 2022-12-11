@@ -19,8 +19,6 @@ export const chat = {
         return sendHttpError(res, error.ROOM_NOT_FOUND);
       }
 
-      console.log(roomId);
-
       const messages = await prisma.message.findMany({
         where: {
           roomId: roomId,
@@ -84,8 +82,6 @@ export const chat = {
         createdAt: message.createdAt,
         updatedAt: message.updatedAt,
       };
-
-      rooms.sendMessage(payload);
 
       redis.publisher.publish("chat", JSON.stringify(payload));
 
