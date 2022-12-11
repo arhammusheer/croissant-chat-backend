@@ -1,4 +1,5 @@
 import { WebSocketServer } from "ws";
+import { redis } from "../app";
 import { ChatRoomManager } from "../services/room.service";
 
 const rooms = new ChatRoomManager();
@@ -44,3 +45,17 @@ export const initializeWebSockets = (wss: WebSocketServer) => {
     });
   });
 };
+
+redis.subscriber.subscribe("chat", (err, count) => {
+  if (err) {
+    console.error(err);
+  }
+
+  console.log(`Subscribed to ${count} channels`);
+});
+
+redis.subscriber.on("message", (channel, message) => {
+  const data = JSON.parse(message);
+
+  rooms.sendMessage(data);
+});

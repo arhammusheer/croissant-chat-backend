@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { prisma } from "../app";
+import { prisma, redis } from "../app";
 import { error, sendHttpError } from "../common/error.message";
 import { ChatRoomManager } from "../services/room.service";
 
@@ -76,14 +76,18 @@ export const chat = {
         },
       });
 
-      rooms.sendMessage({
+      const payload = {
         id: message.id,
         roomId,
         userId: req.user.id,
         text: message.text,
         createdAt: message.createdAt,
         updatedAt: message.updatedAt,
-      });
+      };
+
+      rooms.sendMessage(payload);
+
+      redis.publisher.publish("chat", JSON.stringify(payload));
 
       return res.json({
         status: "success",

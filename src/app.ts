@@ -11,8 +11,19 @@ import { createServer } from "http";
 import { WebSocketServer } from "ws";
 import { initializeWebSockets } from "./websockets/chat.sockets";
 import { verify } from "jsonwebtoken";
+import { createClient } from "redis";
 
 export const prisma = new PrismaClient();
+const publisher = createClient({
+  url: process.env.REDIS_URL,
+});
+const subscriber = publisher.duplicate();
+
+export const redis = {
+  publisher,
+  subscriber,
+};
+
 const app = express();
 export const server = createServer(app);
 export const wss = new WebSocketServer({
