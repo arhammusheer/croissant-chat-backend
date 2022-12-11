@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { prisma } from "../app";
+import { prisma, redis } from "../app";
 import { error, sendHttpError } from "../common/error.message";
 
 export const room = {
@@ -8,11 +8,11 @@ export const room = {
       const { name, latitude, longitude } = req.body;
 
       if (!name) {
-        return sendHttpError(res, error.ROOM_NAME_REQUIRED)
+        return sendHttpError(res, error.ROOM_NAME_REQUIRED);
       }
 
       if (latitude === undefined || longitude === undefined) {
-        return sendHttpError(res, error.LAT_LONG_REQUIRED)
+        return sendHttpError(res, error.LAT_LONG_REQUIRED);
       }
 
       const room = await prisma.room.create({
@@ -27,6 +27,21 @@ export const room = {
           },
         },
       });
+
+      redis.publisher.publish(
+        "room",
+        JSON.stringify({
+          type: "room",
+          data: {
+            id: room.id,
+            name: room.name,
+            latitude: room.latitude,
+            longitude: room.longitude,
+            createdAt: room.createdAt,
+            updatedAt: room.updatedAt,
+          },
+        })
+      );
 
       return res.json({
         status: "success",
@@ -49,7 +64,7 @@ export const room = {
       const { latitude, longitude, radius = "5" } = req.query;
 
       if (latitude === undefined || longitude === undefined) {
-        return sendHttpError(res, error.LAT_LONG_REQUIRED)
+        return sendHttpError(res, error.LAT_LONG_REQUIRED);
       }
       // Find room IDs that are within the radius
       // latitude and longitude are in degrees
@@ -71,7 +86,7 @@ export const room = {
           },
         },
       });
-      
+
       const calculateDistance = (
         lat1: number,
         lon1: number,

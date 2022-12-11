@@ -1,8 +1,11 @@
 import { WebSocket } from "ws";
+import { UserSocket } from "./user.service";
+
+const users = new UserSocket();
 
 interface ChatRoom {
   roomId: string;
-  users: Map<string, WebSocket>; // userId, WebSocket
+  users: string[];
 }
 
 export class ChatRoomManager {
@@ -28,7 +31,7 @@ export class ChatRoomManager {
 
     const newRoom = {
       roomId,
-      users: new Map<string, WebSocket>(),
+      users: [userId],
     };
 
     this.rooms.set(roomId, newRoom);
@@ -41,17 +44,11 @@ export class ChatRoomManager {
 
     // If user is already in room, ignore
 
-    if (room.users.has(userId)) {
-      ws.send(
-        JSON.stringify({
-          status: "warning",
-          message: "Already in room",
-        })
-      );
+    if (room.users.includes(userId)) {
       return room;
     }
 
-    room.users.set(userId, ws);
+    room.users.push(userId);
 
     ws.send(
       JSON.stringify({
@@ -69,9 +66,9 @@ export class ChatRoomManager {
       return;
     }
 
-    room.users.delete(userId);
+    room.users = room.users.filter((user) => user !== userId);
 
-    if (room.users.size === 0) {
+    if (room.users.length === 0) {
       this.rooms.delete(roomId);
     }
   }
@@ -106,14 +103,31 @@ export class ChatRoomManager {
       updatedAt,
     };
 
-    room.users.forEach((ws) => {
-      ws.send(JSON.stringify(payload));
+    room.users.forEach((userId) => {
+      const user = users.getUser(userId);
+
+      if (!user) {
+        return;
+      }
+
+      user.send({
+        type: "chat",
+        data: payload,
+      });
     });
   }
 
-  async leaveAllRooms(userId: string) {
+  async getRoom(roomId: string) {
+    return this.rooms.get(roomId);
+  }
+
+  async getRooms() {
+    return this.rooms;
+  }
+
+  async disconnectUser(userId: string) {
     this.rooms.forEach((room) => {
-      room.users.delete(userId);
+      room.users = room.users.filter((user) => user !== userId);
     });
   }
 }
