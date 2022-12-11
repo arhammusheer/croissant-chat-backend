@@ -9,20 +9,22 @@ import { router } from "./routes";
 import cookieParser from "cookie-parser";
 import { createServer } from "http";
 import { WebSocketServer } from "ws";
-import { initializeWebSockets } from "./websockets/chat.sockets";
+import { initializeWebSockets, redisSubscriptionInit } from "./websockets/chat.sockets";
 import { verify } from "jsonwebtoken";
 import { createClient } from "redis";
 
 export const prisma = new PrismaClient();
-const publisher = createClient({
+const subscriber = createClient({
   url: process.env.REDIS_URL,
 });
-const subscriber = publisher.duplicate();
+const publisher = subscriber.duplicate();
 
 export const redis = {
   publisher,
   subscriber,
 };
+
+export type redisType = typeof redis;
 
 const app = express();
 export const server = createServer(app);
@@ -59,6 +61,10 @@ export const wss = new WebSocketServer({
 });
 
 async function main() {
+  await redis.publisher.connect();
+  await redis.subscriber.connect();
+  await redisSubscriptionInit(redis);
+
   app.use(helmet());
   app.use(morgan("dev"));
   app.use(compression());
