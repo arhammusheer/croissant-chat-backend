@@ -6,6 +6,12 @@ import { validateEmail, validatePassword } from "../utils/validation";
 import jwt from "jsonwebtoken";
 import { error, sendHttpError } from "../common/error.message";
 import { EmailService } from "../services/email.service";
+import { OAuth2Client } from "google-auth-library";
+import { GOOGLE_CLIENT_ID } from "../config";
+
+const googleAuthClient = new OAuth2Client({
+  clientId: GOOGLE_CLIENT_ID,
+});
 
 export const auth = {
   login: async (req: Request, res: Response, next: NextFunction) => {
@@ -307,6 +313,83 @@ export const auth = {
             updatedAt: user.updatedAt,
           },
           token,
+        },
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  google: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { token } = req.query as { token: string };
+
+      if (!token) {
+        return sendHttpError(res, error.INVALID_CODE);
+      }
+
+      const ticket = await googleAuthClient.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+
+      const payload = ticket.getPayload();
+
+      if (!payload) {
+        return sendHttpError(res, error.INVALID_CODE);
+      }
+
+      let user = await prisma.user.findUnique({
+        where: {
+          email: payload.email,
+        },
+      });
+
+      if (!user) {
+        const randomEmoji = getRandomEmoji();
+        const randomColor = getRandomColor();
+
+        user = await prisma.user.create({
+          data: {
+            email: payload.email || "",
+            password: Math.random().toString(36).slice(-8), // Generate a random password for security reasons
+            emoji: randomEmoji,
+            backgroundColor: randomColor,
+          },
+        });
+      }
+
+      const jwtToken = jwt.sign(
+        {
+          id: user.id,
+          email: user.email,
+          emoji: user.emoji,
+          background: user.backgroundColor,
+        },
+        process.env.JWT_SECRET as string,
+        {
+          expiresIn: "1d",
+        }
+      );
+
+      res.cookie("token", `Bearer ${jwtToken}`, {
+        httpOnly: true,
+        sameSite: "none",
+        secure: true,
+      });
+
+      return res.json({
+        status: "success",
+        data: {
+          user: {
+            id: user.id,
+            email: user.email,
+            emoji: user.emoji,
+            background: user.backgroundColor,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+          },
+          token: jwtToken,
         },
       });
     } catch (err) {

@@ -8,4 +8,6 @@ authRouter.post("/register", auth.register);
 authRouter.post("/passwordless", auth.passwordless);
 authRouter.get("/passwordless/callback", auth.passwordlessCallback);
 
+authRouter.get("/google", auth.google);
+
 export { authRouter };
