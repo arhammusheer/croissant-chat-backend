@@ -4,6 +4,8 @@ import { auth } from "../controllers/auth.controller";
 const authRouter = Router();
 
 authRouter.post("/login", auth.login);
+authRouter.post("/logout", auth.logout);
+
 authRouter.post("/register", auth.register);
 authRouter.post("/passwordless", auth.passwordless);
 authRouter.get("/passwordless/callback", auth.passwordlessCallback);

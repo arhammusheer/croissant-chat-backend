@@ -396,4 +396,21 @@ export const auth = {
       next(err);
     }
   },
+
+  logout: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      res.clearCookie("token", {
+        httpOnly: true,
+        sameSite: "none",
+        secure: true,
+      });
+
+      return res.json({
+        status: "success",
+        data: {},
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
 };
