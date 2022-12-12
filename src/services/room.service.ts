@@ -117,6 +117,76 @@ export class ChatRoomManager {
     });
   }
 
+  async editMessage({
+    id,
+    roomId,
+    userId,
+    text,
+    createdAt,
+    updatedAt,
+  }: {
+    id: string;
+    roomId: string;
+    userId: string;
+    text: string;
+    createdAt: Date;
+    updatedAt: Date;
+  }) {
+    const room = this.rooms.get(roomId);
+
+    if (!room) {
+      return;
+    }
+
+    const payload = {
+      id,
+      roomId,
+      userId,
+      text,
+      createdAt,
+      updatedAt,
+    };
+
+    room.users.forEach((userId) => {
+      const user = users.getUser(userId);
+
+      if (!user) {
+        return;
+      }
+
+      user.send({
+        type: "chat:edit",
+        data: payload,
+      });
+    });
+  }
+
+  async deleteMessage({ id, roomId }: { id: string; roomId: string }) {
+    const room = this.rooms.get(roomId);
+
+    if (!room) {
+      return;
+    }
+
+    const payload = {
+      id,
+      roomId,
+    };
+
+    room.users.forEach((userId) => {
+      const user = users.getUser(userId);
+
+      if (!user) {
+        return;
+      }
+
+      user.send({
+        type: "chat:delete",
+        data: payload,
+      });
+    });
+  }
+
   async getRoom(roomId: string) {
     return this.rooms.get(roomId);
   }

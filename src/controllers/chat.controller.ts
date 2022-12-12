@@ -95,4 +95,98 @@ export const chat = {
       next(err);
     }
   },
+
+  editMessage: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { messageId } = req.params;
+      const { text } = req.body as { text: string };
+
+      if (!messageId) {
+        return sendHttpError(res, error.MESSAGE_NOT_FOUND);
+      }
+
+      if (!text) {
+        return sendHttpError(res, error.MESSAGE_REQUIRED);
+      }
+
+      if (text.length > 1000) {
+        return sendHttpError(res, error.MESSAGE_TOO_LONG);
+      }
+
+      const message = await prisma.message.update({
+        where: {
+          id: messageId,
+        },
+        data: {
+          text,
+        },
+      });
+
+      // If user is not the owner of the message, return error
+      if (message.userId !== req.user.id) {
+        return sendHttpError(res, error.MESSAGE_OWNERSHIP);
+      }
+
+      const payload = {
+        id: message.id,
+        roomId: message.roomId,
+        userId: req.user.id,
+        text: message.text,
+        createdAt: message.createdAt,
+        updatedAt: message.updatedAt,
+      };
+
+      redis.publisher.publish("chat:edit", JSON.stringify(payload));
+
+      return res.json({
+        status: "success",
+        data: {
+          message,
+        },
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  deleteMessage: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { messageId } = req.params;
+
+      if (!messageId) {
+        return sendHttpError(res, error.MESSAGE_NOT_FOUND);
+      }
+
+      const message = await prisma.message.delete({
+        where: {
+          id: messageId,
+        },
+      });
+
+      // If user is not the owner of the message, return error
+      if (message.userId !== req.user.id) {
+        return sendHttpError(res, error.MESSAGE_OWNERSHIP);
+      }
+
+      const payload = {
+        id: message.id,
+        roomId: message.roomId,
+        userId: req.user.id,
+        text: message.text,
+        createdAt: message.createdAt,
+        updatedAt: message.updatedAt,
+      };
+
+      redis.publisher.publish("chat:delete", JSON.stringify(payload));
+
+      return res.json({
+        status: "success",
+        data: {
+          message,
+        },
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
 };

@@ -78,11 +78,22 @@ export const initializeWebSockets = (wss: WebSocketServer) => {
 };
 
 export const redisSubscriptionInit = async (redis: redisType) => {
-  await redis.subscriber.subscribe("chat", async (data, channel) => {
-    const message = JSON.parse(data);
+  const events = {
+    chat: rooms.sendMessage,
+    "chat:delete": rooms.deleteMessage,
+    "chat:edit": rooms.editMessage,
+  } as const;
 
-    await rooms.sendMessage(message);
-  });
+  await Promise.all(
+    Object.entries(events).map(
+      async ([c, callback]) =>
+        await redis.subscriber.subscribe(c, async (data, channel) => {
+          const message = JSON.parse(data);
+
+          await callback(message);
+        })
+    )
+  );
 
   await redis.subscriber.subscribe("room", async (data, channel) => {
     const message = JSON.parse(data);

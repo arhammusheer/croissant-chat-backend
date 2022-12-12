@@ -131,6 +131,16 @@ export const error = {
     "access_denied",
     "User not in room"
   ),
+  MESSAGE_NOT_FOUND: new HttpError(
+    HttpStatusCode.NOT_FOUND,
+    "not_found",
+    "Message not found"
+  ),
+  MESSAGE_OWNERSHIP: new HttpError(
+    HttpStatusCode.UNAUTHORIZED,
+    "access_denied",
+    "Message ownership invalid"
+  ),
 };
 
 export const sendHttpError = (res: Response, error: HttpError) => {
