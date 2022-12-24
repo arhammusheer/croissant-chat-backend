@@ -198,6 +198,24 @@ export const auth = {
         usercreated = true;
       }
 
+      // Check if the user recently requested a code
+      const lastCode = await prisma.oneTimeCode.findFirst({
+        where: {
+          userId: user.id,
+          // Isn't expired
+          expiresAt: {
+            gt: new Date(),
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      if (lastCode) {
+        return sendHttpError(res, error.TOO_MANY_REQUESTS);
+      }
+
       // Alpha-numeric code of 12 characters plus uniuq
 
       const code = `${Date.now().toString(36)}-${Math.random()

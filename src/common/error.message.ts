@@ -17,6 +17,7 @@ enum HttpStatusCode {
   UNAUTHORIZED = 401,
   BAD_REQUEST = 400,
   NOT_FOUND = 404,
+  TOO_MANY_REQUESTS = 429,
   INTERNAL_SERVER = 500,
 }
 
@@ -81,6 +82,11 @@ export const error = {
     HttpStatusCode.BAD_REQUEST,
     "validation_error",
     "Invalid code"
+  ),
+  TOO_MANY_REQUESTS: new HttpError(
+    HttpStatusCode.TOO_MANY_REQUESTS,
+    "too_many_requests",
+    "Too many requests"
   ),
 
   // Room errors
